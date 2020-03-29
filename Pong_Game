@@ -1,0 +1,146 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Mar 28 20:56:23 2020
+
+@author: mario
+"""
+
+"""
+Pong game in Python using Turtle module
+
+"""
+import turtle
+import time
+import winsound
+
+# create window
+wn = turtle.Screen() 
+wn.title("Marios Pong")
+wn.bgcolor("black")
+wn.setup(width=800,height=600)
+wn.tracer(0) # stops the window from updating
+
+
+# Score
+score_a = 0
+score_b = 0
+
+
+# add paddles and ball
+# Paddle A
+paddle_a = turtle.Turtle()
+paddle_a.speed(speed=1) # speed of animation to maximum
+paddle_a.shape("square")
+paddle_a.color("white")
+paddle_a.shapesize(stretch_wid=5, stretch_len=1) # default is 20 pixels
+paddle_a.penup() # we do not draw lines as we move
+paddle_a.goto(-350,0) # 0,0 is the middle
+
+
+# Paddle B
+paddle_b = turtle.Turtle()
+paddle_b.speed(0) # speed of animation to maximum
+paddle_b.shape("square")
+paddle_b.color("white")
+paddle_b.shapesize(stretch_wid=5, stretch_len=1) # default is 20 pixels
+paddle_b.penup() # we do not draw lines as we move
+paddle_b.goto(350,0) # 0,0 is the middle
+
+# Ball
+ball = turtle.Turtle()
+ball.speed(0) # speed of animation to maximum
+ball.shape("square")
+ball.color("white")
+ball.penup() # we do not draw lines as we move
+ball.goto(0,0) # 0,0 is the middle
+
+# Ball moves in 2D
+ball.dx = 11 # moves by 11 pixels. Needs to be even for the checks below
+ball.dy = 11 # this will be managed in main loop
+
+
+# Pen
+
+pen = turtle.Turtle()
+pen.speed(0)
+pen.color("white")
+pen.penup()
+pen.hideturtle() # we only want to see the text not the pen
+pen.goto(0, 260)
+pen.write("Player A: 0  Player B: 0",align="center", font=("Courier",24, "normal"))
+
+
+# Move function
+def paddle_a_up():
+    y = paddle_a.ycor()
+    y += 20 # moves up 20 pixels
+    paddle_a.sety(y)
+
+def paddle_a_down():
+    y = paddle_a.ycor()
+    y -= 20 # moves up 20 pixels
+    paddle_a.sety(y)
+
+def paddle_b_up():
+    y = paddle_b.ycor()
+    y += 20 # moves up 20 pixels
+    paddle_b.sety(y)
+
+def paddle_b_down():
+    y = paddle_b.ycor()
+    y -= 20 # moves up 20 pixels
+    paddle_b.sety(y)  
+    
+# keyboard binding
+wn.listen() # listen for keyboard input
+wn.onkeypress(paddle_a_up,"w")
+wn.onkeypress(paddle_a_down,"s")
+wn.onkeypress(paddle_b_up,"Up")
+wn.onkeypress(paddle_b_down,"Down")
+
+# Every game needs a main loop
+while True:
+    
+    wn.update() #updates the screen
+
+    # Move the ball
+    time.sleep(0.1)
+    ball.setx(ball.xcor()+ball.dx)
+    ball.sety(ball.ycor()+ball.dy)
+    
+    # Border checking
+    if ball.ycor() > 290: # screen is 600 pixels height
+        ball.sety(290)
+        ball.dy *= -1 # reverses the direction
+        #winsound.PlaySound("bounce.wav",winsound.SND_ASYNC) to play sound asynchronously in the background
+        # so that the program does not glitch
+    
+    if ball.ycor() < -290: 
+        ball.sety(-290)
+        ball.dy *= -1 # reverses the direction
+        
+    if ball.xcor() > 390: 
+       ball.goto(0,0)
+       ball.dx *= -1
+       # we get a score for A if ball hits the right boundary
+       score_a += 1
+       pen.clear()
+       pen.write("Player A: {}  Player B: {}".format(score_a,score_b),align="center", font=("Courier",24, "normal"))
+       
+    if ball.xcor() < -390: 
+       ball.goto(0,0)
+       ball.dx *= -1
+       score_b += 1
+       pen.clear()
+       pen.write("Player A: {}  Player B: {}".format(score_a,score_b),align="center", font=("Courier",24, "normal"))
+
+    if (ball.xcor() > 340) and (ball.xcor() <350)  and (ball.ycor() < paddle_b.ycor() + 40) and (ball.ycor() > paddle_b.ycor() - 40):
+        ball.setx(340)
+        ball.dx *= -1
+    
+    if (ball.xcor() < -340) and (ball.xcor() > -350)  and (ball.ycor() < paddle_a.ycor() + 40) and (ball.ycor() > paddle_a.ycor() - 40):
+        ball.setx(-340)
+        ball.dx *= -1
+    
+    if score_a == 10 or score_b == 10:
+        break
