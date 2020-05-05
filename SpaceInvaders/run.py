@@ -41,6 +41,7 @@ textX = 10
 textY = 10
 lifeX =600
 lifeY =10
+killed = 0
 
 def show_score(x,y):
     score_ = font.render("Score : " + str(score),True, (0,255,0))
@@ -57,12 +58,14 @@ enemyY = []
 enemyX_change = []
 enemyY_change = []
 num_of_enemies = 11
+# speed changes according to the enemies killed (increases difficulty)
+enemy_speed = min(score//(killed+1) + 1,10) 
 
 for i in range(num_of_enemies):
     enemyImg.append(pygame.image.load('enemy.png'))
     enemyX.append(random.randint(0,736))
     enemyY.append(random.randint(50,150))
-    enemyX_change.append(1)
+    enemyX_change.append(enemy_speed)
     enemyY_change.append(40)
 
 
@@ -147,14 +150,14 @@ while running:
         playerY_change = 0
     
     
-    for i in range((score//10 + 1)):
+    for i in range((killed//10 + 1)):
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 0:
-            enemyX_change[i] = 1
+            enemyX_change[i] = enemy_speed
             enemyY[i] += enemyY_change[i]
         # spaceship is 64x64 pixels
         elif enemyX[i] >= 736:
-            enemyX_change[i] = -1
+            enemyX_change[i] = - enemy_speed
             enemyY[i] += enemyY_change[i]
         if enemyY[i] > 500:
             score -=1
@@ -165,6 +168,7 @@ while running:
             bullet_state = "ready"
             show_explosion(enemyX[i],enemyY[i])
             score += 1
+            killed += 1
             enemyX[i] = random.randint(0,736) 
             enemyY[i] = random.randint(50,150)
         
@@ -181,7 +185,7 @@ while running:
         bulletY -= bulletY_change
     
     
-    for i in range((score%10 + 1)):
+    for i in range(len(enemyX)):
         if isCollision(enemyX[i],enemyY[i],playerX,playerY):
             life -= 1
             show_explosion(enemyX[i],enemyY[i])
@@ -191,10 +195,11 @@ while running:
     show_score(textX,textY)
     show_life()
     
-    if life<=0 or score>90:
+    if life<=0:
         game_over = True
     
     if game_over:
+        print(score)
         break
     player(playerX,playerY) # it needs to be on top of the screen
     pygame.display.update() # to show the updates
