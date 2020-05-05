@@ -33,7 +33,7 @@ playerY_change = 0
 
 explosion = pygame.image.load('explosion.png')
 
-life = 5
+life = 10
 score = 0
 game_over = False
 font = pygame.font.Font('freesansbold.ttf',32)
@@ -57,15 +57,14 @@ enemyX = []
 enemyY = []
 enemyX_change = []
 enemyY_change = []
-num_of_enemies = 11
-# speed changes according to the enemies killed (increases difficulty)
-enemy_speed = min(score//(killed+1) + 1,10) 
+num_of_enemies = 10
+enemy_speed = 0
 
 for i in range(num_of_enemies):
     enemyImg.append(pygame.image.load('enemy.png'))
     enemyX.append(random.randint(0,736))
     enemyY.append(random.randint(50,150))
-    enemyX_change.append(enemy_speed)
+    enemyX_change.append(1)
     enemyY_change.append(40)
 
 
@@ -94,17 +93,25 @@ def isCollision(item1x,item1y,item2x,item2y):
     distance = math.sqrt((item1x-item2x)**2 + (item1y-item2y)**2)
     if distance <=27 :
         return True
+        
+def isCollision2(item1x,item1y,item2x,item2y):
+    distance = math.sqrt((item1x-item2x)**2 + (item1y-item2y)**2)
+    if distance <=37 :
+        return True
 
 def show_explosion(x,y):
     screen.blit(explosion,(x,y))
     pygame.time.wait(10)
-    
+
+
+
+
 # Game loop, infinite
 running = True
 while running:
     
     # give RGB background color
-    screen.fill((0,0,0)) #black
+    #screen.fill((0,0,0)) #black
     # background
     screen.blit(background,(0,0))
     
@@ -139,9 +146,9 @@ while running:
     if playerX <= 0:
         playerX = 0
     # spaceship is 64x64 pixels
+    # Keep the spaceship within the frame
     if playerX >= 736:
-        playerX = 736
-        
+        playerX = 736  
     if playerY <= 300:
         playerY = 300
         playerY_change = 0
@@ -150,7 +157,14 @@ while running:
         playerY_change = 0
     
     
-    for i in range((killed//10 + 1)):
+    if score<20:
+        enemy_speed = 1
+    elif score<40:
+        enemy_speed = 2
+    else:
+        enemy_speed = 3
+    
+    for i in range((score//10 + 1)):
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 0:
             enemyX_change[i] = enemy_speed
@@ -159,10 +173,14 @@ while running:
         elif enemyX[i] >= 736:
             enemyX_change[i] = - enemy_speed
             enemyY[i] += enemyY_change[i]
-        if enemyY[i] > 500:
-            score -=1
+            
+        if enemyY[i] >= 500:
+            life -= 1
+            enemyX[i] = random.randint(0,736) 
+            enemyY[i] = random.randint(50,150)
         
-        if isCollision(enemyX[i],enemyY[i],bulletX,bulletY):
+        if isCollision(enemyX[i],enemyY[i],bulletX,bulletY) :#and bulletY != playerY and bulletX!=playerX:
+            # if the bullet hits an enemy, we need to reload
             bulletY = playerY
             bulletX = playerX
             bullet_state = "ready"
@@ -172,6 +190,7 @@ while running:
             enemyX[i] = random.randint(0,736) 
             enemyY[i] = random.randint(50,150)
         
+        # respawn the killed enemy
         enemy(enemyX[i],enemyY[i],i)
         
     
@@ -185,8 +204,8 @@ while running:
         bulletY -= bulletY_change
     
     
-    for i in range(len(enemyX)):
-        if isCollision(enemyX[i],enemyY[i],playerX,playerY):
+    for i in range((score//10 + 1)):
+        if isCollision2(enemyX[i],enemyY[i],playerX,playerY):
             life -= 1
             show_explosion(enemyX[i],enemyY[i])
             enemyX[i] = random.randint(0,736) 
