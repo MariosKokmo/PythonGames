@@ -16,6 +16,7 @@ pygame.init()
 # create screen, pixels
 screen = pygame.display.set_mode((800,600))
 
+# background image
 background = pygame.image.load("space.jpg").convert()
 
 # Title and Icon
@@ -30,19 +31,24 @@ playerY = 480
 playerX_change = 0
 playerY_change = 0
 
-
+# image of explosion
 explosion = pygame.image.load('explosion.png')
 
+# parameters
 life = 10
 score = 0
+# counter of enemies killed
+killed = 0
 game_over = False
+
+# for text display
 font = pygame.font.Font('freesansbold.ttf',32)
 textX = 10
 textY = 10
 lifeX =600
 lifeY =10
-killed = 0
 
+# text display
 def show_score(x,y):
     score_ = font.render("Score : " + str(score),True, (0,255,0))
     screen.blit(score_, (x,y))
@@ -51,7 +57,7 @@ def show_life(x=lifeX,y=lifeY):
     life_ = font.render("Life : " + str(life),True, (255,255,255))
     screen.blit(life_, (x,y))
 
-#Enemy
+# list of Enemies
 enemyImg = []
 enemyX = []
 enemyY = []
@@ -60,6 +66,7 @@ enemyY_change = []
 num_of_enemies = 10
 enemy_speed = 0
 
+# creation of the enemies' list
 for i in range(num_of_enemies):
     enemyImg.append(pygame.image.load('enemy.png'))
     enemyX.append(random.randint(0,736))
@@ -93,7 +100,8 @@ def isCollision(item1x,item1y,item2x,item2y):
     distance = math.sqrt((item1x-item2x)**2 + (item1y-item2y)**2)
     if distance <=27 :
         return True
-        
+
+# collision2 is used to distinguish enemy-bullet and enemy-player collisions
 def isCollision2(item1x,item1y,item2x,item2y):
     distance = math.sqrt((item1x-item2x)**2 + (item1y-item2y)**2)
     if distance <=37 :
@@ -102,8 +110,6 @@ def isCollision2(item1x,item1y,item2x,item2y):
 def show_explosion(x,y):
     screen.blit(explosion,(x,y))
     pygame.time.wait(10)
-
-
 
 
 # Game loop, infinite
@@ -134,13 +140,12 @@ while running:
                     bulletX = playerX
                     bulletY = playerY
                     fire_bullet(bulletX,bulletY)
-        
-                
+            
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT: 
                 playerX_change = 0
     
-    
+    # move player
     playerX += playerX_change
     playerY += playerY_change
     if playerX <= 0:
@@ -156,7 +161,7 @@ while running:
         playerY = 480
         playerY_change = 0
     
-    
+    # modify the speed of the enemies (game difficulty)
     if score<20:
         enemy_speed = 1
     elif score<40:
@@ -164,6 +169,7 @@ while running:
     else:
         enemy_speed = 3
     
+    # check where the enemies are and if they have collided or have been shot
     for i in range((score//10 + 1)):
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 0:
@@ -190,6 +196,13 @@ while running:
             enemyX[i] = random.randint(0,736) 
             enemyY[i] = random.randint(50,150)
         
+        # check if player and enemy collide
+        if isCollision2(enemyX[i],enemyY[i],playerX,playerY):
+            life -= 1
+            show_explosion(enemyX[i],enemyY[i])
+            enemyX[i] = random.randint(0,736) 
+            enemyY[i] = random.randint(50,150)
+            
         # respawn the killed enemy
         enemy(enemyX[i],enemyY[i],i)
         
@@ -202,23 +215,14 @@ while running:
     if bullet_state == "fire":
         fire_bullet(bulletX,bulletY)
         bulletY -= bulletY_change
-    
-    
-    for i in range((score//10 + 1)):
-        if isCollision2(enemyX[i],enemyY[i],playerX,playerY):
-            life -= 1
-            show_explosion(enemyX[i],enemyY[i])
-            enemyX[i] = random.randint(0,736) 
-            enemyY[i] = random.randint(50,150)
-            
+    # show text
     show_score(textX,textY)
     show_life()
     
     if life<=0:
         game_over = True
-    
     if game_over:
-        print(score)
+        print('Your final score is: ' + score)
         break
     player(playerX,playerY) # it needs to be on top of the screen
     pygame.display.update() # to show the updates
